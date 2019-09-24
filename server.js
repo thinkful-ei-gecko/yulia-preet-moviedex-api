@@ -1,12 +1,28 @@
 'use strict';
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
-const movies = require('./moviestore.js');
+const cors = require('cors');
+const helmet = require('helmet');
+const movies = require('./moviestore.json');
 
 const app = express();
 
 app.use(morgan('dev'));
+app.use(helmet());
+app.use(cors());
 
+//function for validation
+app.use(function validateBearerToken(req, res, next){
+  const apiToken = process.env.API_TOKEN
+  const authToken = req.get('Authorization')
+  if(!authToken || authToken.split(' ')[1] !== apiToken){
+    return res.status(401).json({ error: 'Unauthorized request made'})
+  }
+  next()
+})
+
+//function for requesting the movies by user query
 function handleGetMovies(req, res) {
   const { genre, country, avg_vote} = req.query;
   if(!genre && !country && !avg_vote) {
@@ -31,7 +47,6 @@ function handleGetMovies(req, res) {
     });
     res.status(200).json(movieByVote);
   }
-  
 }
 
 app.get('/movies', handleGetMovies);
