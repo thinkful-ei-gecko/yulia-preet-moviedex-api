@@ -8,19 +8,20 @@ const movies = require('./moviestore.json');
 
 const app = express();
 
-app.use(morgan('dev'));
+const morganSetting = process.env.NODE_ENV === 'production' ? 'tiny' : 'common';
+app.use(morgan(morganSetting));
 app.use(helmet());
 app.use(cors());
 
 //function for validation
 app.use(function validateBearerToken(req, res, next){
-  const apiToken = process.env.API_TOKEN
-  const authToken = req.get('Authorization')
+  const apiToken = process.env.API_TOKEN;
+  const authToken = req.get('Authorization');
   if(!authToken || authToken.split(' ')[1] !== apiToken){
-    return res.status(401).json({ error: 'Unauthorized request made'})
+    return res.status(401).json({ error: 'Unauthorized request made'});
   }
-  next()
-})
+  next();
+});
 
 //function for requesting the movies by user query
 function handleGetMovies(req, res) {
@@ -48,6 +49,7 @@ function handleGetMovies(req, res) {
 
 app.get('/movies', handleGetMovies);
 
-app.listen(8000, () => {
-  console.log('Server listening');
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  ('Server listening');
 });
